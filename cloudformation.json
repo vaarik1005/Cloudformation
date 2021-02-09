@@ -1,0 +1,1599 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Bootstrap Stack for CFS accounts - MDK..",
+    "Parameters": {
+        "ExecutionRoleArn": {
+            "Type": "String",
+            "Description": "Cloudformation Stack Execution Role ARN (needed for KMS Keys)",
+            "Default": "arn:aws:iam::415754506132:role/devops-sts-jenkins-deploy"
+        },
+        "S3KMSKeyArn": {
+            "Type": "String",
+            "Description": "S3 KMS Key Arn",
+            "Default": "arn:aws:kms:us-east-2:415754506132:key/e72849fc-3760-4acd-a86f-12c74502dd10"
+        },
+        "VPC1": {
+            "Type": "AWS::EC2::VPC::Id",
+            "Description": "VPC1 ID",
+            "Default": "vpc-0a3be32bf1d0f9da6"
+        },
+        "VPC2": {
+            "Type": "AWS::EC2::VPC::Id",
+            "Description": "VPC2 ID",
+            "Default": "vpc-07589b35a6f03f95c"
+        },
+        "VPC3": {
+            "Type": "AWS::EC2::VPC::Id",
+            "Description": "VPC3 ID",
+            "Default": "vpc-0eebf0d83d67c84a8"
+        },
+        "PublicSubnet1VPC1": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC1 Public Subnet1 ID",
+            "Default": "subnet-0b0a07f08b9024a4c"
+        },
+        "PublicSubnet2VPC1": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC1 Public Subnet2 ID",
+            "Default": "subnet-079d4673a9b50d7e0"
+        },
+        "PrivateSubnet1VPC1": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC1 Private Subnet1 ID",
+            "Default": "subnet-0330433494ef29e12"
+        },
+        "PrivateSubnet2VPC1": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC1 Private Subnet2 ID",
+            "Default": "subnet-0fa00474c46a0c093"
+        },
+        "PublicSubnet1VPC2": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC2 Public Subnet2 ID",
+            "Default": "subnet-03e74ad3882ed0a57"
+        },
+        "PublicSubnet2VPC2": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC2 Public Subnet1 ID",
+            "Default": "subnet-0dfc664800e887c63"
+        },
+        "PrivateSubnet1VPC2": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC2 Private Subnet1 ID",
+            "Default": "subnet-0c56f3a414c4224f5"
+        },
+        "PrivateSubnet2VPC2": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC2 Private Subnet2 ID",
+            "Default": "subnet-065e7ba372375870f"
+        },
+        "PublicSubnet1VPC3": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC3 Public Subnet1 ID",
+            "Default": "subnet-0621cdb760d755629"
+        },
+        "PublicSubnet2VPC3": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC3 Public Subnet2 ID",
+            "Default": "subnet-0c3527b7f1f84a98a"
+        },
+        "PrivateSubnet1VPC3": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC3 Private Subnet1 ID",
+            "Default": "subnet-02ded54b3a92ee074"
+        },
+        "PrivateSubnet2VPC3": {
+            "Type": "AWS::EC2::Subnet::Id",
+            "Description": "VPC3 Private Subnet2 ID",
+            "Default": "subnet-028f04ebe7bf58fda"
+        },
+        "HostedZoneName": {
+            "Type": "String",
+            "Description": "Route 53 Hoszted Zone Name",
+            "Default": "awc-n-ny-apps.use2.fnd.aws.frb.pvt"
+        },
+        "HostedZoneId": {
+            "Type": "String",
+            "Description": "Route 53 Hoszted Zone Id",
+            "Default": "Z0267734XYWRXH6VGB3Y"
+        },
+        "Tag2ndLevelSupportValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: 2nd Level Support",
+            "Default": "B1-TECS-Application-Delivery-Services"
+        },
+        "TagappCiNameValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: Application System CI Name",
+            "Default": "SOFR-DEV"
+        },
+        "TagCIEnvironmentValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: CI Environment",
+            "Default": "dev"
+        },
+        "TagcreatedDateValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: Created Date",
+            "Default": "02/09/2021"
+        },
+        "TagdataClassificationValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: Information Classification",
+            "Default": "NONCONFIDENTIAL"
+        },
+        "TagDeptCodeValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: Department Code",
+            "Default": 2901
+        },
+        "TaglobValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: Line of Business",
+            "Default": "GCBSOFR000"
+        },
+        "TagmanagedByValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: Accounting Code",
+            "Default": "Reserve Banks"
+        },
+        "TagtaggingVersionValue": {
+            "Type": "String",
+            "Description": "Value of the Tag: Tagging Version",
+            "Default": 1
+        }
+    },
+    "Resources": {
+        "SG443PrivateVPC1": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows HTTPS from Interfed",
+                "GroupName": "devops-sg-interfed-https-vpc1",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.0.0.0/8"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "172.0.0.0/8"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            }
+        },
+        "SG443PrivateVPC2": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows HTTPS from Interfed",
+                "GroupName": "devops-sg-interfed-https-vpc2",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.0.0.0/8"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "172.0.0.0/8"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC2"
+                }
+            }
+        },
+        "SG443PrivateVPC3": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows HTTPS from Interfed",
+                "GroupName": "devops-sg-interfed-https-vpc3",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.0.0.0/8"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "172.0.0.0/8"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC3"
+                }
+            }
+        },
+        "SGOutOnlyVPC1": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows Outbound connections only",
+                "GroupName": "devops-sg-out-only-vpc1",
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            }
+        },
+        "SGOutOnlyVPC2": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows Outbound connections only",
+                "GroupName": "devops-sg-out-only-vpc2",
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC2"
+                }
+            }
+        },
+        "SGOutOnlyVPC3": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows Outbound connections only",
+                "GroupName": "devops-sg-out-only-vpc3",
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC3"
+                }
+            }
+        },
+        "SG443DatacentersVPC1": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows HTTPS from CC1 and CC3",
+                "GroupName": "devops-sg-markets-https-vpc1",
+                "SecurityGroupIngress": [
+                    {
+                        "Description": "Allow HTTPS from CC1",
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.51.0.0/16"
+                    },
+                    {
+                        "Description": "Allow HTTPS from CC3",
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.53.0.0/16"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC1"
+                }
+            }
+        },
+        "SG443DatacentersVPC2": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows HTTPS from CC1 and CC3",
+                "GroupName": "devops-sg-markets-https-vpc2",
+                "SecurityGroupIngress": [
+                    {
+                        "Description": "Allow HTTPS from CC1",
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.51.0.0/16"
+                    },
+                    {
+                        "Description": "Allow HTTPS from CC3",
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.53.0.0/16"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC2"
+                }
+            }
+        },
+        "SG443DatacentersVPC3": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Allows HTTPS from CC1 and CC3",
+                "GroupName": "devops-sg-markets-https-vpc3",
+                "SecurityGroupIngress": [
+                    {
+                        "Description": "Allow HTTPS from CC1",
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.51.0.0/16"
+                    },
+                    {
+                        "Description": "Allow HTTPS from CC3",
+                        "IpProtocol": "tcp",
+                        "FromPort": 443,
+                        "ToPort": 443,
+                        "CidrIp": "10.53.0.0/16"
+                    }
+                ],
+                "SecurityGroupEgress": [
+                    {
+                        "Description": "Allow All Outbound Connections",
+                        "IpProtocol": "-1",
+                        "FromPort": "0",
+                        "ToPort": "65535",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "VPC3"
+                }
+            }
+        },
+        "SecretsKMSKey": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Description": "KMS Key for Secrets Manager Encryption",
+                "EnableKeyRotation": true,
+                "KeyPolicy": {
+                    "Version": "2012-10-17",
+                    "Id": "key-default-1",
+                    "Statement": [
+                        {
+                            "Sid": "Allow administration of the key",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": [
+                                    {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:iam::",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":role/awc-ny-iam-role-saml-ServiceMgmtAdmin"
+                                            ]
+                                        ]
+                                    },
+                                    {
+                                        "Ref": "ExecutionRoleArn"
+                                    }
+                                ]
+                            },
+                            "Action": "kms:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow Use",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:iam::",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            ":root"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "kms:Decrypt",
+                                "kms:Encrypt",
+                                "kms:GenerateDataKey",
+                                "kms:ReEncryptTo",
+                                "kms:GenerateDataKeyWithoutPlaintext",
+                                "kms:DescribeKey",
+                                "kms:GenerateDataKeyPairWithoutPlaintext",
+                                "kms:GenerateDataKeyPair",
+                                "kms:ReEncryptFrom"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "PendingWindowInDays": 7
+            }
+        },
+        "SecretsKeyAlias": {
+            "Type": "AWS::KMS::Alias",
+            "DependsOn": "SecretsKMSKey",
+            "Properties": {
+                "AliasName": "alias/sofr-secrets-kms-key",
+                "TargetKeyId": {
+                    "Ref": "SecretsKMSKey"
+                }
+            }
+        },
+        "LambdaKMSKey": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Description": "KMS Key for SOFR Lambda Encryption",
+                "EnableKeyRotation": true,
+                "KeyPolicy": {
+                    "Version": "2012-10-17",
+                    "Id": "key-default-1",
+                    "Statement": [
+                        {
+                            "Sid": "Allow administration of the key",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": [
+                                    {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:iam::",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":role/awc-ny-iam-role-saml-ServiceMgmtAdmin"
+                                            ]
+                                        ]
+                                    },
+                                    {
+                                        "Ref": "ExecutionRoleArn"
+                                    }
+                                ]
+                            },
+                            "Action": "kms:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow Use",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:iam::",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            ":root"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "kms:Decrypt",
+                                "kms:Encrypt",
+                                "kms:GenerateDataKey",
+                                "kms:ReEncryptTo",
+                                "kms:GenerateDataKeyWithoutPlaintext",
+                                "kms:DescribeKey",
+                                "kms:GenerateDataKeyPairWithoutPlaintext",
+                                "kms:GenerateDataKeyPair",
+                                "kms:ReEncryptFrom"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "PendingWindowInDays": 7
+            }
+        },
+        "LambdaKeyAlias": {
+            "Type": "AWS::KMS::Alias",
+            "DependsOn": "LambdaKMSKey",
+            "Properties": {
+                "AliasName": "alias/sofr-lambda-kms-key",
+                "TargetKeyId": {
+                    "Ref": "LambdaKMSKey"
+                }
+            }
+        },
+        "SNSKMSKey": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Description": "KMS Key for SOFR SNS Encryption",
+                "EnableKeyRotation": true,
+                "KeyPolicy": {
+                    "Version": "2012-10-17",
+                    "Id": "key-default-1",
+                    "Statement": [
+                        {
+                            "Sid": "Allow administration of the key",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": [
+                                    {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:iam::",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":role/awc-ny-iam-role-saml-ServiceMgmtAdmin"
+                                            ]
+                                        ]
+                                    },
+                                    {
+                                        "Ref": "ExecutionRoleArn"
+                                    }
+                                ]
+                            },
+                            "Action": "kms:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow Use",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:iam::",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            ":root"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "kms:Decrypt",
+                                "kms:Encrypt",
+                                "kms:GenerateDataKey",
+                                "kms:ReEncryptTo",
+                                "kms:GenerateDataKeyWithoutPlaintext",
+                                "kms:DescribeKey",
+                                "kms:GenerateDataKeyPairWithoutPlaintext",
+                                "kms:GenerateDataKeyPair",
+                                "kms:ReEncryptFrom"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Key": "2nd Level Support",
+                        "Value": {
+                            "Ref": "Tag2ndLevelSupportValue"
+                        }
+                    },
+                    {
+                        "Key": "Application System CI Name",
+                        "Value": {
+                            "Ref": "TagappCiNameValue"
+                        }
+                    },
+                    {
+                        "Key": "CI Environment",
+                        "Value": {
+                            "Ref": "TagCIEnvironmentValue"
+                        }
+                    },
+                    {
+                        "Key": "Created Date",
+                        "Value": {
+                            "Ref": "TagcreatedDateValue"
+                        }
+                    },
+                    {
+                        "Key": "Information Classification",
+                        "Value": {
+                            "Ref": "TagdataClassificationValue"
+                        }
+                    },
+                    {
+                        "Key": "Department Code",
+                        "Value": {
+                            "Ref": "TagDeptCodeValue"
+                        }
+                    },
+                    {
+                        "Key": "Line of Business",
+                        "Value": {
+                            "Ref": "TaglobValue"
+                        }
+                    },
+                    {
+                        "Key": "Accounting Code",
+                        "Value": {
+                            "Ref": "TagmanagedByValue"
+                        }
+                    },
+                    {
+                        "Key": "Tagging Version",
+                        "Value": {
+                            "Ref": "TagtaggingVersionValue"
+                        }
+                    }
+                ],
+                "PendingWindowInDays": 7
+            }
+        },
+        "SNSKeyAlias": {
+            "Type": "AWS::KMS::Alias",
+            "DependsOn": "SNSKMSKey",
+            "Properties": {
+                "AliasName": "alias/sofr-sns-kms-key",
+                "TargetKeyId": {
+                    "Ref": "SNSKMSKey"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "ZoneName": {
+            "Description": "Route 53 Hosted Zone Name",
+            "Value": {
+                "Ref": "HostedZoneName"
+            },
+            "Export": {
+                "Name": "53-HOSTED-ZONE-NAME"
+            }
+        },
+        "ZoneId": {
+            "Description": "Route 53 Hosted Zone ID",
+            "Value": {
+                "Ref": "HostedZoneId"
+            },
+            "Export": {
+                "Name": "53-HOSTED-ZONE-ID"
+            }
+        },
+        "SNPub1VPC1Id": {
+            "Description": "Public Subnet in AZ1 in VPC1",
+            "Value": {
+                "Ref": "PublicSubnet1VPC1"
+            },
+            "Export": {
+                "Name": "SUBNET-PUBLIC-AZ1-VPC1-ID"
+            }
+        },
+        "SNPub2VPC1Id": {
+            "Description": "Public Subnet in AZ2 in VPC1",
+            "Value": {
+                "Ref": "PublicSubnet2VPC1"
+            },
+            "Export": {
+                "Name": "SUBNET-PUBLIC-AZ2-VPC1-ID"
+            }
+        },
+        "SNPri1VPC1Id": {
+            "Description": "Private Subnet in AZ1 in VPC1",
+            "Value": {
+                "Ref": "PrivateSubnet1VPC1"
+            },
+            "Export": {
+                "Name": "SUBNET-PRIVATE-AZ1-VPC1-ID"
+            }
+        },
+        "SNPri2VPC1Id": {
+            "Description": "Private Subnet in AZ2 in VPC1",
+            "Value": {
+                "Ref": "PrivateSubnet2VPC1"
+            },
+            "Export": {
+                "Name": "SUBNET-PRIVATE-AZ2-VPC1-ID"
+            }
+        },
+        "SNPub1VPC2Id": {
+            "Description": "Public Subnet in AZ1 in VPC2",
+            "Value": {
+                "Ref": "PublicSubnet1VPC2"
+            },
+            "Export": {
+                "Name": "SUBNET-PUBLIC-AZ1-VPC2ID"
+            }
+        },
+        "SNPub2VPC2Id": {
+            "Description": "Public Subnet in AZ2 in VPC2",
+            "Value": {
+                "Ref": "PublicSubnet2VPC2"
+            },
+            "Export": {
+                "Name": "SUBNET-PUBLIC-AZ2-VPC2-ID"
+            }
+        },
+        "SNPri1VPC2Id": {
+            "Description": "Private Subnet in AZ1 in VPC2",
+            "Value": {
+                "Ref": "PrivateSubnet1VPC2"
+            },
+            "Export": {
+                "Name": "SUBNET-PRIVATE-AZ1-VPC2-ID"
+            }
+        },
+        "SNPri2VPC2Id": {
+            "Description": "Private Subnet in AZ2 in VPC2",
+            "Value": {
+                "Ref": "PrivateSubnet2VPC2"
+            },
+            "Export": {
+                "Name": "SUBNET-PRIVATE-AZ2-VPC2-ID"
+            }
+        },
+        "SNPub1VPC3Id": {
+            "Description": "Public Subnet in AZ1 in VPC3",
+            "Value": {
+                "Ref": "PublicSubnet1VPC3"
+            },
+            "Export": {
+                "Name": "SUBNET-PUBLIC-AZ1-VPC3-ID"
+            }
+        },
+        "SNPub2VPC3Id": {
+            "Description": "Public Subnet in AZ2 in VPC3",
+            "Value": {
+                "Ref": "PublicSubnet2VPC3"
+            },
+            "Export": {
+                "Name": "SUBNET-PUBLIC-AZ2-VPC3-ID"
+            }
+        },
+        "SNPri1VPC3Id": {
+            "Description": "Private Subnet in AZ1 in VPC3",
+            "Value": {
+                "Ref": "PrivateSubnet1VPC3"
+            },
+            "Export": {
+                "Name": "SUBNET-PRIVATE-AZ1-VPC3-ID"
+            }
+        },
+        "SNPri2VPC3Id": {
+            "Description": "Private Subnet in AZ2 in VPC3",
+            "Value": {
+                "Ref": "PrivateSubnet2VPC3"
+            },
+            "Export": {
+                "Name": "SUBNET-PRIVATE-AZ2-VPC3-ID"
+            }
+        },
+        "SG443DatacentersVPC1Id": {
+            "Description": "Security Group ID in VPC1 for Datacenters to 443",
+            "Value": {
+                "Ref": "SG443DatacentersVPC1"
+            },
+            "Export": {
+                "Name": "SG-443-DC-VPC1-ID"
+            }
+        },
+        "SG443DatacentersVPC2Id": {
+            "Description": "Security Group ID in VPC2 for Datacenters to 443",
+            "Value": {
+                "Ref": "SG443DatacentersVPC2"
+            },
+            "Export": {
+                "Name": "SG-443-DC-VPC2-ID"
+            }
+        },
+        "SG443DatacentersVPC3Id": {
+            "Description": "Security Group ID in VPC3 for Datacenters to 443",
+            "Value": {
+                "Ref": "SG443DatacentersVPC3"
+            },
+            "Export": {
+                "Name": "SG-443-DC-VPC3-ID"
+            }
+        },
+        "SG443PrivateVPC1Id": {
+            "Description": "Security Group ID in VPC1 for Private IPs to 443",
+            "Value": {
+                "Ref": "SG443PrivateVPC1"
+            },
+            "Export": {
+                "Name": "SG-443-PRIVATE-VPC1-ID"
+            }
+        },
+        "SG443PrivateVPC2Id": {
+            "Description": "Security Group ID in VPC2 for Private IPs to 443",
+            "Value": {
+                "Ref": "SG443PrivateVPC2"
+            },
+            "Export": {
+                "Name": "SG-443-PRIVATE-VPC2-ID"
+            }
+        },
+        "SG443PrivateVPC3Id": {
+            "Description": "Security Group ID in VPC3 for Private IPs to 443",
+            "Value": {
+                "Ref": "SG443PrivateVPC3"
+            },
+            "Export": {
+                "Name": "SG-443-PRIVATE-VPC3-ID"
+            }
+        },
+        "SGOutOnlyVPC1Id": {
+            "Description": "Security Group ID in VPC1 for Outbound Connections only",
+            "Value": {
+                "Ref": "SGOutOnlyVPC1"
+            },
+            "Export": {
+                "Name": "SG-OUT-ONLY-VPC1-ID"
+            }
+        },
+        "SGOutOnlyVPC2Id": {
+            "Description": "Security Group ID in VPC2 for Outbound Connections only",
+            "Value": {
+                "Ref": "SGOutOnlyVPC2"
+            },
+            "Export": {
+                "Name": "SG-OUT-ONLY-VPC2-ID"
+            }
+        },
+        "SGOutOnlyVPC3Id": {
+            "Description": "Security Group ID in VPC3 for Outbound Connections only",
+            "Value": {
+                "Ref": "SGOutOnlyVPC3"
+            },
+            "Export": {
+                "Name": "SG-OUT-ONLY-VPC3-ID"
+            }
+        },
+        "SNSKMSKeyArn": {
+            "Description": "SNS KMS Key ARN",
+            "Value": {
+                "Fn::GetAtt": [
+                    "SNSKMSKey",
+                    "Arn"
+                ]
+            },
+            "Export": {
+                "Name": "SNS-KMS-KEY-ARN"
+            }
+        },
+        "SNSKMSKeyId": {
+            "Description": "SNS KMS Key ID",
+            "Value": {
+                "Ref": "SNSKMSKey"
+            },
+            "Export": {
+                "Name": "SNS-KMS-KEY-ID"
+            }
+        },
+        "SecretsKMSKeyArn": {
+            "Description": "Secrets Manager KMS Key ARN",
+            "Value": {
+                "Fn::GetAtt": [
+                    "SecretsKMSKey",
+                    "Arn"
+                ]
+            },
+            "Export": {
+                "Name": "SECRETS-KMS-KEY-ARN"
+            }
+        },
+        "SecretsKMSKeyId": {
+            "Description": "Secrets Manager KMS Key ID",
+            "Value": {
+                "Ref": "SecretsKMSKey"
+            },
+            "Export": {
+                "Name": "SECRETS-KMS-KEY-ID"
+            }
+        },
+        "S3KMSKeyArn": {
+            "Description": "S3 KMS Key ARN",
+            "Value": {
+                "Ref": "S3KMSKeyArn"
+            },
+            "Export": {
+                "Name": "S3-KMS-KEY-ARN"
+            }
+        },
+        "LambdaKMSKeyArn": {
+            "Description": "Lambda KMS Key ARN",
+            "Value": {
+                "Fn::GetAtt": [
+                    "LambdaKMSKey",
+                    "Arn"
+                ]
+            },
+            "Export": {
+                "Name": "LAMBDA-KMS-KEY-ARN"
+            }
+        },
+        "LambdaKMSKeyId": {
+            "Description": "Lambda KMS Key ID",
+            "Value": {
+                "Ref": "LambdaKMSKey"
+            },
+            "Export": {
+                "Name": "LAMBDA-KMS-KEY-ID"
+            }
+        }
+    }
+}
